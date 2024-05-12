@@ -1,0 +1,917 @@
+;		**INICIO DEL PROYECTO DE ESTRUCTURA HECHO POR EL GRUPO D210262**
+;	********								                            ********
+;***				                  *				                          ******
+;	********		   ********************************		            ********
+;		******************************************************************
+;				         	 *****************
+;				          	      ********	
+				     
+;						********PARTICIPANTES********
+;						*	      *MIRIAM BERNAT      *
+;						*	      *SIHAM TAHERI       *
+
+
+LEA:    MACRO  (reg, ETIQ)
+        or     reg, r0,  low(ETIQ)
+        or.u   reg, reg, high(ETIQ)
+        ENDMACRO          
+
+DBNZ:    MACRO (ra, ETIQ)
+        sub     ra, ra, 1
+        cmp     r10, ra, 0
+        bb0     eq, r10, ETIQ
+        ENDMACRO              
+
+PUSH:   MACRO  (ra)
+        sub     r30, r30, 4
+        st      ra, r30, 0
+        ENDMACRO
+
+POP:    MACRO  (ra)
+        ld      ra, r30, 0
+        add     r30, r30, 4
+        ENDMACRO
+
+LOAD:   MACRO  (ra, ETIQ)
+        LEA       (ra, ETIQ)
+        ld        ra, ra, r0
+        ENDMACRO 
+
+
+;//////////////////////////////////////////////////////////////////////////////////
+;DATOS:
+;//////////////////////////////////////////////////////////////////////////////////
+
+;	
+org 0x5000
+;LongCad
+CADENA1:		data "\0"						;longitud 0
+CADENA2:		data "12345\0"					;longitud 5
+CADENA3:		data "123456789\0"				;longitud 9
+CADENA4:		data "Quien vive en la pina debajo del mar bob esponja su cuerpo amarillo absorbe sin mas\0"	;longitud 75
+CADENA5:        data "Estais listos si capitan mas fuerte si capitan uuuuuuuuu quien vive en la pina debajo del mar bob esponja su cuerpo amarillo absorbe sin mas bob esponja el mejor amigo que puedes tener bob esponja igual que los peces el puede flotar bob esponja bob esponja bob esponja bob esponja bob esponja ya llego jajajajaja\0" ;longitud 312
+
+;BuscaCar
+Car1:			data "p"
+Car2:			data "x"
+FROM1:  		data 2
+TO1: 			data 16
+FROM2:  		data 17
+TO2:    		data 21
+FROM3:	    	data 34
+TO3:	    	data 56
+
+;CoincidenCad
+Cad1:		    data "abcdefghij\0"
+Cad2:		    data "bcdefghijk\0"
+Cad3:		    data "ab*cdfghijklm*cdfghijklm*cdfghijklm*cdfghijklm*cdfghijklm*cdfghijk\0"
+Cad4:		    data "ab*cdfghijklm*cdfghijklm*cdfghijklm*cdfghijklm*cdfghijklm*cdfghijk\0"
+
+;BuscaMax
+Ref1:		    data "abcdefghij\0"
+Ref2:		    data "tres tristes tigres comen trigo en un trigal, el primer tigre que...\0"
+Ref3:		    data "Fabulas fabulosas hay en fabulosos fabularios, fabuladores y fabulistas hacen fabulas fabulosas pero la fabulosidad de las fabulas del fabulistano son fabulosas si no hace un fabulario de fabulas"
+jj:				data 0x64
+max0:			data 4
+max1:			data 8
+max2:			data 32
+max3:			data 64
+
+;Comprime
+texto1:			data "012378978978\0"
+comprdo:		data 0x12000
+Ref4: 			data "0123456789\0"
+
+;//////////////////////////////////////////hay que poner alguno más de estos
+
+;Descomprime
+CMPR1:			data 0x07010014, 0x30000000, 0x34333231, 0x38373635
+				data 0x37383939, 0x33343536, 0x00303132
+
+CMPR2:			data 0x0b010044, 0x10102400, 0x74004000, 0x20736572
+				data 0x73697274, 0x04000274, 0x00016769, 0x6d6f6304
+				data 0x00046e65, 0x206f6704, 0x75206e65, 0x61060018
+				data 0x65202c6c, 0x7270206c, 0x72656d69, 0x2006000c
+				data 0x2e657571, 0x00002e2e
+
+;Verifica
+Long1:          data   0x12000
+Long2:          data   0x12100
+
+;//////////////////////////////////////////////////////////////////////////////////
+;PROGRAMA PRINCIPAL: 
+;//////////////////////////////////////////////////////////////////////////////////
+org 0x6000
+				
+;LongCad
+					LEA (r12, Cad1)    	;Guardamos la cadena en r12
+					PUSH (r12)				;Añadimos cadena en la pila
+
+					bsr LongCad           	;Llamamos a la subrutina
+
+                    POP(r12)                ;Sacamos la cadena de la pila, vaciándola
+
+
+;BuscaCar
+					LOAD (r12, TO1)		    ;Cargamos el to en r12
+	 				LOAD (r13, FROM1)	    ;Cargamos el from en r13
+					LEA (r14, CADENA4)		;Cargamos la cadena en r14
+					LOAD (r15, Car1)		;Cargamos el caracter Car1 a buscar en r15
+
+					PUSH (r12)				;Metemos el to en la pila
+					PUSH (r13)				;Metemos el from en la pila
+					PUSH (r14)				;Metemos la cadena en la pila
+					PUSH (r15)				;Metemos el caracter en la pila
+
+					bsr BuscaCar			;Llamamos a la subrutina
+					
+                    POP (r15)               ;sacamos los parámetros de la pila, vaciándola
+                    POP (r14)
+                    POP (r13)
+                    POP (r12)
+
+;CoincidenCad:		
+					LEA (r12, Cad4)		    ;Cargamos la dirección de la segunda cadena en r12
+					LEA (r13, Cad3)		    ;Cargamos la dirección de la primera cadena en r13
+
+					PUSH (r12)				;Metemos cad2 en la pila
+					PUSH (r13)				;Metemos cad1 en la pila
+					
+					bsr CoincidenCad		;Llamamos a la subrutina
+
+					POP(r13)		        ;sacamos los parámetros de la pila, vaciándola
+                    POP(r12)
+
+
+;BuscaMax
+					LEA (r12, Ref3)	        ;Cargamos la direccion de la cadena en r12
+					LOAD (r13, max3)		;Cargamos el desplazamiento max
+					LOAD (r14, jj)			;Cargamos la direccion de retorno de jj
+
+					PUSH (r14)				;Metemos jj en la pila
+					PUSH (r13)				;Metemos max en la pila
+					PUSH (r12)				;Metemos ref en la pila
+
+					bsr BuscaMax			;Llamamos a la subrutina
+					
+                    POP(r12)        		;Sacamos los parámetros de la pila, vaciándola
+                    POP(r13)
+                    POP(r14)
+
+;Comprime
+					LEA (r12, texto1)	    ;texto
+					LOAD (r13, comprdo)	    ;comprdo
+					PUSH (r13)				;Metemos comprdo en la pila
+					PUSH (r12)				;Metemos texto en la pila
+
+					bsr Comprime			;Llamamos a la subrutina
+
+					POP (r12)               ;Sacamos los parámetros de la pila, vaciándola
+                    POP (r13)
+
+;Descomprime
+                    LEA (r12, CMPR2)		;com
+					LOAD (r13, comprdo)	    ;desc
+					PUSH (r13)				;Metemos desc en la pila
+					PUSH (r12)				;Metemos com en la pila
+
+					bsr Descomprime			;Llamamos a la subrutina
+
+					POP (r12)               ;Sacamos los parámetros de la pila, vaciándola
+                    POP (r13)
+
+;Verifica  
+
+
+PPAL:               or r30, r0, 0xF000    ;Inicializamos r30 (el puntero)
+					addu r31, r30, r0		;Guardamos en r30 el marco de pila 
+	
+
+                    LEA(r12, Ref4)          ;texto
+					LOAD(r13, Long1)        ;Long1
+					LOAD(r14, Long2)        ;Long2
+					PUSH(r14)               ;Metemos Long2 en la pila
+					PUSH(r13)               ;Metemos Long1 en la pila
+					PUSH(r12)               ;Metemos el texto en la pila
+					
+					bsr Verifica            ;Llamamos a la subrutina
+					POP (r12)               ;Sacamos los parámetros de la pila, vaciándola
+                    POP (r13)
+                    POP (r14)
+					
+					
+				    stop					;Fin del programa
+
+;//////////////////////////////////////////////////////////////////////////////////
+;MÉTODOS IMPLEMENTADOS: 
+;//////////////////////////////////////////////////////////////////////////////////
+
+Descomprime: 
+    PUSH(r1)
+    PUSH(r31)
+    or r31, r30, r30
+
+    ld r2, r31, 8  ;R2 = com  (cadena comprimida)
+    ld r3, r31, 12  ;R3 = desc  (cadena descomprimida)
+
+    or r4, r0, 0  ;R4 = p  (desplazamiento sobre com en el que leemos hasta el mapa de bits incluido)
+    or r5, r0, 0  ;R5 = by (marcador byte)
+    or r6, r0, 0  ;R6 = bi (marcador número de bit)
+    or r7, r0, 0  ;R7 = m (desplazamiento sobre DESC para escribir el texto)
+    or r8, r0, 0  ;R8 = p' (desplazamiento sobre COM para leer el texto)
+	or r9, r0, 0  ;R9 = M (8xM caracteres se quedan sin comprimir al inicio)
+	or r10, r0, 0 ;R10 = F (8xM = F)
+	or r11, r0, 0 ;R11 = c (caracter actual)
+	or r12, r0, 0 ;R12 = U (longitud de la cadena descomprimida)
+	or r13, r0, 0 ;R13 = B (registro para cargar los bytes y mirar los bits)
+    or r14, r0, 0 ;R14 = S (desplazamiento sobre COM donde acaba el mapa de bits y empieza la cadena)
+    or r15, r0, 0 ;R15 = cmp (comparador para mirar si un bit es 0 o 1)
+    or r17, r0, 0 ;R17 = POS(desplazamiento de la cadena que hay que copiar cuando está repetida)
+    or r18, r0, 0 ;R18 = L (longitud de la cadena de caracteres)
+
+    ;1. LEEMOS LA CABECERA DE LA CADENA;
+
+        ;CARGAMOS U
+        ld.h r12, r2, r4  ;cargamos en r12 los dos primeros bytes para leer (tamaño de la cadena)
+        addu r4, r4, 2   ;se suma dos al contador por haber leído dos bytes
+
+        ;CARGAMOS M
+		ld.bu r9, r2, r4 ;cargamos el valor de M = 1
+		addu r4, r4, 1  ;se suma 1 al contador por haber leído 1 byte
+
+        ;CARGAMOS S Y P'
+		ld.bu  r8, r2, r4  ;cargamos el valor bajo de p'
+		addu r4, r4, 1  ;se suma 1 al contador por haber leído 1 byte
+        ld.bu r27, r2, r4  ;cargamos el valor alto de p' en un registro auxiliar
+        addu r4, r4, 1  ;se suma 1 al contador por haber leído 1 byte
+        mulu r27, r27, 256  ;multiplicamos el valor alto de p' por 16^2 = 256
+        addu r8, r8, r27  ;añadimos este valor alto a p'
+
+        addu r14, r8, 0  ;copiamos p', que también es S, en R14
+
+        ;CREAMOS F (8XM)
+		mulu r10, r9, 8  ;contador para los 8xM primeros caracteres (F)
+
+    ;2. COPIAMOS LOS 8XM PRIMEROS CARACTERES DE LA CADENA
+
+	BUCLECOPIARFCAR: 
+		cmp r28, r10, r0 ;comparamos el contador F con 0
+		bb1 eq, r28, BUCLEPRINCIPALDES ;Si F es 0, lo sacamos fuera pq ya no hay más caracteres que copiar
+		ld.bu r11, r2, r8 ;cargamos el primer caracter en r11
+		st.b r11, r3, r7  ;guardamos el caracter en la dirección del DESC con desplazamiento m sobre DESC)
+		subu r10, r10, 1 ;F = F - 1(es nuestro contador en el bucle)
+        addu r7, r7, 1  ; m = m + 1
+        addu r8, r8, 1  ; p' = p' + 1
+        br BUCLECOPIARFCAR
+
+    ;3. RECORRE EN UN BUCLE LOS BYTES DE COM HASTA ALCANZAR EL FINAL.
+
+    BUCLEPRINCIPALDES:
+        cmp r28, r4, r14 ;comparamos p con S
+        bb1 eq, r28, FINALDES  ;si p llega a la posición de comienzo de la cadena de caracteres, se va al final.
+        cmp r28, r7, r12 ;comparamos m con U 
+        bb1 eq, r28, FINALDES ;si el desplazamiento m es igual a la longitud de la cadena (se han escrito todos los caracteres), salta al final
+        ld.bu r13, r2, r4 ;cargamos el primer byte de la cadena en el registro designado.
+        addu r4, r4, 1 ;se suma 1 al contador p por haber leído 1 byte
+        addu r6, r0, 8 ;ponemos bi a 8
+        addu r15, r0, 128 ;ponemos r15 como 10000000 (128)
+    LEERBITS:
+        cmp r28, r7, r12 ;comparamos m con U 
+        bb1 eq, r28, FINALDES ;si el desplazamiento m es igual a la longitud de la cadena (se han escrito todos los caracteres), salta al final
+        cmp r28, r6, r0 ;comparamos el contador bi con 0
+        bb1 eq, r28, BUCLEPRINCIPALDES  ;Si bi = 0, entonces ha leído todos los bits y se va a leer el siguiente byte
+        and r27, r13, r15 ;usamos la máscara para saber si el bit está a 1
+        cmp r28, r0, r27 ;comparamos el registro con 0
+        bb1 ne, r28, BITESUNO ;si es 0, quiere decir que el bit está a 0.
+    BITESCERO:
+        ld.bu r11, r2, r8 ;cargamos el caracter en r11
+		st.b r11, r3, r7  ;guardamos el caracter en la dirección del DESC con desplazamiento m sobre DESC)
+        addu r7, r7, 1  ; m = m + 1
+        addu r8, r8, 1  ; p' = p' + 1
+        subu r6, r6, 1  ; bi = bi - 1
+        rot r15, r15, <1> ;rotamos hacia la derrecha el bit a 1 en r15
+        br LEERBITS
+
+    BITESUNO:
+        ;Cargamos la posición de la cadena
+        ld.bu r17, r2, r8 ;cargamos el primer byte en r17
+        addu r8, r8, 1 ;se suma 1 al contador p' por haber leído 1 byte
+        ld.bu r27, r2, r8 ;se carga el segundo byte
+        addu r8, r8, 1 ;se suma 1 al contador p' por haber leído 1 byte
+        mulu r27, r27, 256 ;multiplicamos el valor alto de posit por 16^2 = 256
+        addu r8, r8, r27 ;añadimos el valor alto a posit
+
+        ;Cargamos el byte de los caracteres (L)
+        ld.bu r18, r2, r8; cargamos el byte en r18
+        addu r8, r8, 1 ;se suma 1 al contador p' por haber leído 1 byte
+
+        subu r6, r6, 1  ; bi = bi - 1
+        rot r15, r15, <1> ;rotamos hacia la derrecha el bit a 1 en r15
+        br COPIAR
+                
+
+    COPIAR: 
+        cmp r28, r18, 0 ;comparamos L con 0
+        bb1 eq, r28, LEERBITS ;si L = 0 (ha llegao al final) se pasa a leer el siguiente bit
+        ld.bu r11, r3, r17 ;cargamos el caracter almacenado en la cadena DES en la posición del caracter que hay en la dirección POS
+        st.b r11, r3, r7 ;guardamos el caracter a partir de la posición m
+        addu r17, r17, 1 ;POS = POS + 1
+        addu r7, r7, 1 ;m = m + 1
+        subu r18, r18, 1 ;decrementamos la longitud que queda por copiar
+        br COPIAR
+
+    FINALDES:
+        st.b r0, r3, r7 ;guardamos el /0 al final en la cadena
+        addu r29, r0, r12 ;guardamos el U en r29
+        or r30, r31, r31
+        POP(r31)
+        POP(r1)
+        jmp(r1)
+
+		
+Comprime:
+    PUSH(r1)
+	PUSH(r31)
+	or r31, r30, r30
+
+        ld r3, r31, 12 ;R2 = texto (fuente)
+        ld r2, r31, 8 ;R3 = comprdo (resultado)
+
+        or r4, r0, 0 ;R4 = L (longitud de la cadena)
+        or r5, r0, 0 ;R5 = C (contador para saber cuántas palabras ocupa texto como mucho en la pila)
+        or r6, r0, 0 ;R6 = D (número de palabras que hay que reservar en la pila como máximo)
+
+    ;1. Determina la longitud del texto llamando a LongCad
+
+        ;Guardado de parámetros importantes antes de llamar a la subrutina
+
+        PUSH(r3) ;guardamos comprdo para no perderlo
+
+        ;Introducción de parámetros a la pila para ejecutar la subrutina
+
+        PUSH(r2) ;guardamos el texto
+        bsr LongCad
+        POP(r2) ;sacamos el texto
+
+        ;Recuperamos los parámetros importantes para Comprime
+
+        POP(r3) ;sacamos el comprdo
+
+        addu r4, r29, 0 ;guardamos L (longitud d la cadena)
+
+    ;2. Reserva espacio en la pila para la cadena comprimida sin cabecera (ajustado a exceso 4)
+        addu r5, r4, 0 ;ponemos el contador a L
+        or r6, r0, 0 ;ponemos el otro contador a 0
+
+    RESERVAESPACIO: 
+        cmp r28, r5, r0 ;comparamos r5 con 0 
+        bb1 le, r28, RESERVA
+        addu r6, r6, 4 ;añadimos 4 al contador de palabra
+        sub r5, r5, 4 ;restamos 4 caracteres al contador
+        br RESERVAESPACIO
+    
+    RESERVA: 
+        sub r30, r30, r6 ;reservamos espacio en la pila para el texto
+        addu r20, r30, 0 ;ponemos un puntero a la variable textocomprimido
+        sub r30, r30, 4 ;reservamos espacio en la pila para la variable jj
+        addu r21, r30, 0 ;guardamos en r21 el puntero de la dirección de la variable jj
+
+    ;3. Inicializamos las variables necesarias. 
+
+        or r5, r0, 0  ;R5 = m (desplazamiento para recorrer el texto)
+        or r7, r0, 0  ;R7 = by (contador de byte)
+        or r8, r0, 0  ;R8 = bi (marcador de número de bit)
+        or r9, r0, 1  ;R9 = M (que en este caso es 1)
+        or r10, r0, 0 ;R10 = F(8xM)
+        or r11, r0, 0 ;R11 = c (carga un caracter para transferir)
+        or r12, r0, 0 ;R12 = p' (desplazamiento cadena comprimida en pila)
+        or r13, r0, 0 ;R13 = B (registro pa gestionar los bits)
+        or r15, r0, 0 ;R15 = mask(máscara para escribir en un bit concreto)
+        addu r14, r3, 5 ;R14 = dirección del primer byte del mapa de bits
+        or r16, r0, 0 ;R16 = contador para el desplazamiebto de bytes en el mapa de bits
+
+
+    ;4. Copia los 8xM caracteres iniciales sin comprimir en la última zona del texto comprimido
+
+    addu r10, r9, 0 ;copiamos el valor de M(1) a r10
+    mulu r10, r10, 8 ; r10 = r10 x 8 (así queda el contador para los 8xM caracteres primeros)
+
+    BUCLCPIARFCARS: 
+        cmp r28, r10, r0 ;compara el valor del contador r10 con 0
+        bb1 eq, r28, BUCLEPPALCMP ;si es 0 es que ha llegado al final y va a seguir con el resto de caracteres
+        ld.bu r11, r2, r5 ;cargamos el primer caracter de la cadena texto
+        st.b r11, r20, r12 ;guardamos el caracter en la pila, con desplazamiento p'.
+        subu r10, r10, 1 ;F = F - 1(es nuestro contador en el bucle)
+        addu r5, r5, 1 ; m = m + 1
+        addu r12, r12, 1 ;p' = p' + 1
+        br BUCLCPIARFCARS
+
+    BUCLEPPALCMP:
+        or r13, r0, 0 ;ponemos B a 0 (en blanco para luego rellenar)
+        addu r8, r0, 8 ;ponemos bi a 8
+        addu r15, r0, 128 ;ponemos r15 como 10000000 (128)
+    LLAMADABUSCAMAX:
+        cmp r28, r4, r5 ;comparamos r4 con r12
+        bb1 eq, r28, FINALCOMP ;si la longitud de la cadena es igual al desplazamiento del texto original quiere decir que ha llegado al final
+        ld.bu r11, r2, r5 ;cargamos el siguiente caracter a copiar
+        cmp r28, r11, r0 ;comparamos el caracter con 0
+        bb1 eq, r28, FINALCOMP ;si es igual, salta al final
+        ;Guardado de parámetros importantes antes de llamar a la subrutina
+        PUSH(r3) ;guardamos comprdo para no perderlo
+        PUSH(r4) ;guardamos L
+        PUSH(r6) ;guardamos D
+        PUSH(r7) ;guardamos by
+        PUSH(r8) ;guardamos bi
+        PUSH(r9) ;guardamos M
+        PUSH(r11);guardamos el caracter
+        PUSH(r12);guardamos p'
+        PUSH(r13);guardamos B
+        PUSH(r14);guardamos el puntero r14
+        PUSH(r15);guardamos la máscara pa escribir en un bit
+        PUSH(r16);guardamos el desplazamiento de los bytes en el mapa de bits
+        PUSH(r20);guardamos la dir del texto comprimido sin cabecera
+
+        ;Introducción de parámetros a la pila para ejecutar la subrutina
+            PUSH(r21);dirección de jj en la pila para guardar el desplazamiento
+            PUSH(r5) ;desplazamiento actual para el texto
+            PUSH(r2) ;se mete el texto a la pila
+            bsr BuscaMax
+            POP(r2) ;recuperamos el texto
+            POP(r5) ;recuperamos el desplazamiento
+            POP(r21) ;recuperamos la dirección de jj
+        ;Recuperación de parámetros importantes guardados
+
+        POP(r20)
+        POP(r16)
+        POP(r15)
+        POP(r14)
+        POP(r13)
+        POP(r12)
+        POP(r11)
+        POP(r9)
+        POP(r8)
+        POP(r7)
+        POP(r6)
+        POP(r4)
+        POP(r3)
+
+        addu r10, r29, 0 ;cargamos en r10 el valor de L (devuelto por BuscaMax)
+        cmp r28, r10, 4 ;comparamos L(BuscaMax) con 4
+        bb1 hs, r28, MAYORIGUALQUE4
+
+    MENORQUE4: 
+        st.b r11, r20, r12 ;copiamos el caracter en la variable con desplazamiento p12
+        addu r5, r5, 1 ;se suma 1 al contador por haber leído 1 byte
+        addu r12, r12, 1 ;se suma 1 al contador por haber leído 1 byte
+        rot r15, r15, <1> ;escribimos un 0, es decir, rotamos hacia la derecha directamente y no modificamos B
+        subu r8, r8, 1 ;se resta 1 al contador de bits
+        cmp r28, r8, 0 ;se compara bi con 0
+        bb1 ne, r28, LLAMADABUSCAMAX
+        st.b r13, r14, r16 ;guardamos el byte en r14 + desplazamiento
+        addu r16, r16, 1 ;añadimos 1 al desplazamiento de r16 en los bytes dl mapa
+        br BUCLEPPALCMP
+
+    MAYORIGUALQUE4:
+        ;cuidao cn el r21
+        ld.bu r27, r21, 0; carga el byte de arriba en r27 (registro auxiliar)
+        st.b r27, r20, r12 ;mete ese byte en el siguiente hueco
+        addu r12, r12, 1 ;suma 1 al contador r12
+        ld.bu r27, r21, 1; carga el byte de abajo en r27
+        st.b r27, r20, r12; mete el byte en el siguiente hueco
+        addu r12, r12, 1 ;suma 1 al contador r12
+        st.b r29, r20, r12;mete el byte con L en el hueco siguiente
+        addu r12, r12, 1; suma 1 al contador r12
+
+        addu r5, r5, r29 ; sumamos la longitud de la cadena coincidente al contador para recorrer texto
+        or r13, r13, r15 ; cambiamos el bit correspondiente por un 1
+        rot r15, r15, <1>; se rota el 1 a la derecha
+        subu r8, r8, 1; se resta 1 al contador de bits
+        cmp r28, r8, 0 ;se compara bi con 0
+        bb1 ne, r28, LLAMADABUSCAMAX
+        st.b r13, r14, r16 ;guardamos el byte en r14 + desplazamiento
+        addu r16, r16, 1 ;añadimos 1 al desplazamiento de r16 en los bytes dl mapa
+        br BUCLEPPALCMP
+
+    FINALCOMP:
+        cmp r28, r8, 8 ;comparamos lo q hay en bi con 8
+        bb1 eq, r28, PONERCABECERA
+        st.b r13, r14, r16 ;guardamos el byte en r14 + desplazamiento
+        addu r16, r16, 1 ;añadimos 1 al desplazamiento de r16 en los bytes dl mapa
+    PONERCABECERA:
+        st.h r4, r3, 0 ;mete los dos bytes con la longitud en el hueco dir[0] y dir[1]
+        st.b r9, r3, 2; mete M en la variable
+        addu r27, r16, r0 ;utilizamos r27 como registro auxiliar para calcular el valor del número de bytes hasta la cadena
+        addu r27, r27, 5 ;sumamos 5 al número de bytes del mapa
+        st.b r27, r3, 3; mete el byte en el hueco siguiente
+        rot r27, r27, <8> ;rota los 8 bits pa ponerlos luego
+        st.b r27, r3, 4;mete el byte en el siguiente hueco
+        rot r27, r27, <24> ;rota el registro otra vez para dejarlo como estaba
+        or r17, r0, 0;inicializa el contador de r17 a 0
+        addu r14, r14, r16;pone el puntero r14 detrás del mapa de bits
+    COPY: 
+        cmp r28, r12, r17  ;compara el contenido d r12 (desplazamiento cadena comprimida) con r17
+        bb1 eq, r28, FINCOMP ;si r17 = r12, salta a FINCOMP (ha leído todos los caracteres)
+        ld.bu r11, r20, r17
+        st.b r11, r14, r17 ;guarda el byte en el siguiente hueco
+        addu r17, r17, 1 ;suma 1 al contador
+        br COPY
+
+    FINCOMP:
+        addu r29, r0, 5
+        addu r29, r29, r16
+        addu r29, r29, r17
+        or r30, r31, r31
+        POP(r31)
+        POP(r1)
+        jmp(r1)
+
+LongCad:
+        ld r28, r30, 0; &texto
+        or r11, r0,0; ponemos el contador a 0
+
+    BUCLELONGCAD:
+            ld.bu r4, r28,0;carga el caracter actual
+            cmp r6,r4,r0 ;compara la vaina cn 0
+            bb1 eq,r6,FINCUCU ;si es 0, va a fin
+            ;SI NO LO ESTA VA A CONTINUAR Y TENEMOS QUE APUNTAR AL SIGUIENTE ELEMENTO
+            addu r28,r28,1 ;+1 al puntero (siguiente caracter) pq es a nivel d byte
+            addu r11,r11,1 ;suma 1 al contador
+            br BUCLELONGCAD
+    FINCUCU:     
+        addu r29,r11,0
+        jmp(r1)
+
+BuscaMax: 
+        PUSH(r1)
+        PUSH(r31)
+        or r31, r30, r30
+        ;sub r30, r30, 20 ;reserva de espacio pa variables locales
+        ld r2, r31, 8 ;texto
+        ld r3, r31, 12 ;max
+        ld r4, r31, 16 ;jj
+
+        subu r15, r0, 1 ;L = longitud 
+        st r15, r4, 0; guardamos en jj el -1 (hay q cargar el ffffffff en dnd)
+
+        ;INICIALIZACIÓN DE VARIABLES
+        or r16, r0, 0; p = recorredor d p
+        or r17, r0,0;  s = longitud más larga
+
+
+
+    BUCLEBUSCAMAX:  
+        cmp r6, r16, r3 ;compara p con MAX
+        bb1 ge, r6, FINMAX  ;si el contador p >= MAX va a FINMAX
+
+        cmp r6, r16, 255  ;compara p con 255
+        bb1 ge, r6, FINMAX ;si p >= 255 tmb va a FINMAX
+
+        ld.bu r5, r2, r3  ;cargamos el caracter actual del texto con desplazamiento de MAX
+                
+        ;GUARDAMOS LOS DATOS IMPORTANTES QUE NO VA A LEER BUSCACAR.
+        PUSH(r17) ;guardamos s en la pila
+        PUSH(r4)  ;guardamos la dirección d jj en la pila
+        PUSH(r15) ;guardamos el valor de r15 en la pila (pa saber si se ha modificao)
+
+        ;METEMOS LOS PARÁMETROS PARA BUSCACAR Y LLAMAMOS A LA FUNCIÓN
+        PUSH(r3) ;cargamos el to (MAX)
+        PUSH(r16) ;Cargamos el from (p)
+        PUSH(r2) ;Cargamos el texto
+        PUSH(r5) ;Cargamos C (el caracter en la posición max)
+        bsr BuscaCar
+        POP(r5)  ;sacamos C (el caracter en la posición max)
+        POP(r2) ;sacamos el texto
+        POP(r16)  ;sacamos el from(p)
+        POP(r3)  ;sacamos el to(MAX)
+
+        ;SACAMOS LAS VARIABLES QUE HABÍAMOS GUARDAO
+        POP(r15) ;sacamos el valor de r15 de la pila
+        POP(r4)  ;sacamos jj
+        POP(r17) ;sacamos s d la pila
+
+        cmp r6, r29, r3 ;comparamos lo devuelto por Buscacar con MAX
+        bb1 eq, r6, FINMAX ;si valor(r29) = MAX (no encontrado el caracter), se va a FINS
+
+        ;SI ESTÁ EL CARACTER, AVANZAMOS EL MARCADOR P HASTA LA POSICIÓN DEVUELTA POR BUSCACAR
+        addu r16, r29, 0 ;p = valor(r29)
+
+        addu r18, r2, r16 ;guardamos la dir de r2 con desplazamiento d p
+        addu r19, r2, r3  ;guardamos la dir de r2 con desplazamiento d max
+
+
+        ;GUARDAMOS LOS DATOS IMPORTANTES ANTES DE LLAMAR A COINCIDENCAD
+        PUSH(r17) ;guardamos s en la pila
+        PUSH(r4)  ;guardamos la dirección d jj en la pila
+        PUSH(r15) ;guardamos el valor de L en la pila (pa saber si se ha modificao)
+        PUSH(r5) ;Cargamos C (el caracter en la posición max)
+        PUSH(r2) ;Cargamos el texto
+        PUSH(r16) ;Cargamos P
+        PUSH(r3) ;cargamos MAX
+
+
+        ;METEMOS LOS PARÁMETROS DEL COINCIDENCAD Y LLAMAMOS A LA SUBRUTINA
+        PUSH(r18) ;guardamos Dir(ref[p]) en la pila
+        PUSH(r19) ;guardamos Dir(ref[MAX]) en la pila
+        bsr CoincidenCad
+        POP(r19) ;sacamos Dir(ref[MAX]) de la pila
+        POP(r18) ;sacamos Dir(ref[p]) de la pila
+
+        ;SACAMOS LOS DATOS IMPORTANTES
+        POP(r3)  ;sacamos MAX
+        POP(r16) ;sacamos p
+        POP(r2)  ;sacamos el texto
+        POP(r5)  ;sacamos C (el caracter en la posición max)
+        POP(r15) ;sacamos el valor de L d la pila
+        POP(r4)  ;sacamos jj
+        POP(r17) ;sacamos s d la pila
+
+        cmp r6, r29, r15 ;comprobamos si lo devuelto por BuscaMax con L, guardao en r15
+        bb1 gt, r6, CAMBIOVALOR ;si r29 > L salta a CAMBIOVALOR
+
+        cmp r6, r29, 255 ;comparamos r29 con 255
+        bb1 ge, r6, FINMAYOR255 ;si r29 >= 255 salta a FINMAYOR
+
+        addu r16, r16, 1 ;  p = p + 1
+        br BUCLEBUSCAMAX
+
+
+    FINMAYOR255: 
+        addu r15, r0, 255 ;guardamos el valor 255 en la variable L
+        st r16, r4, 0  ;guardamos P en jj
+        br FINMAX
+
+	CAMBIOVALOR: 
+        addu r15, r29, 0 ; guardamos el valor de r29 en L
+        st r16, r4, 0 ;guardamos P en jj
+        addu r16, r16, 1; p = p + 1
+        br BUCLEBUSCAMAX
+
+ 	PONERACERO: 
+        or r15, r0, 0
+        br FINALMAX
+
+	FINMAX: or r17,r0,r0
+        sub r17,r0,1
+		cmp r6, r15, r17
+        bb1 eq,r6,PONERACERO
+        br FINALMAX
+
+	FINALMAX:
+        addu r29, r15, 0 ;guardamos en r29 el valor d L
+        or r30, r31, r31 ;destruimos la pila
+        POP(r31)
+        POP(r1)
+        jmp(r1)
+
+CoincidenCad:
+        ld r28, r30, 0; &texto
+		ld r27, r30, 4; &texto
+		or r11, r0,0; ponemos el contador a 0
+		
+	BUCLECOINCAD:	
+		ld.bu r4, r28,0;carga el caracter actual cad 1
+		ld.bu r5, r27,0;carga el caracter actual cad 2
+				
+		cmp r6,r5,0x0000
+		bb1 eq,r6,FIN ;si termina la cadena, va a fin
+
+        cmp r6, r4, 0x0000
+        bb1 eq, r6, FIN ; si termina la cadena, va a fin
+				
+		cmp r6,r4,r5 ;compara la vaina cn el otro
+		bb1 ne,r6,FIN ;si no son iguales van a fin
+				
+		;SI NO LO ESTA VA A CONTINUAR Y TENEMOS QUE APUNTAR AL SIGUIENTE ELEMENTO
+		addu r28,r28,1 ;+1 al puntero (siguiente caracter) pq es a nivel d byte
+		addu r27,r27,1 ;+1 al puntero (siguiente caracter) pq es a nivel d byte
+		addu r11,r11,1 ;suma 1 al contador
+		br BUCLECOINCAD
+	FIN: 	
+		addu r29,r11,0
+		jmp(r1)
+
+
+BuscaCar:
+	ld r14, r30,12 ; to
+	ld r13, r30, 8 ; &form
+	ld r28, r30, 4 ; &texto
+    ld r12, r30, 0; &car
+
+		
+	addu r11,r13,0
+		
+	BUCLEBUSCACAR:	ld.bu r4, r28, r13;carga el caracter actual
+		cmp r6,r4,r12 ;compara la vaina cn car
+		bb1 eq,r6,FINBUC ;si es iwal q car, va a fin
+		cmp r7, r14, r11;
+		bb1 eq, r7, FINNOBUC
+		;SI NO LO ESTA VA A CONTINUAR Y TENEMOS QUE APUNTAR AL SIGUIENTE ELEMENTO
+		addu r28,r28,1 ;+1 al puntero (siguiente caracter) pq es a nivel d byte
+		addu r11,r11,1 ;suma 1 al contador
+		br BUCLEBUSCACAR
+	FINBUC: 
+		addu r29,r11,0
+		;or r6,r0,0
+		;or r13,r0,0 ESTAN COMENTADOS PERO SIRVEN PA PONERLOS EN 0 ESOS REGISTROS =FUNCIONA
+		;or r4,r0,0
+		;or r7,r0,0
+		;or r11,r0,0
+		jmp(r1)
+
+	FINNOBUC:
+		addu r29,r14,0
+		;or r6,r0,0
+		;or r13,r0,0
+		;or r4,r0,0
+		;or r7,r0,0
+		;or r11,r0,0
+		jmp(r1)
+
+Verifica:
+        PUSH(r1)
+		PUSH(r31)
+		or r31, r30, r30
+        ld r2, r31, 8; &texto 
+		ld r9, r31, 12; long1
+		ld r10, r31, 16; long2
+
+
+        PUSH(r2) 
+        bsr LongCad ;calculamos la longitud de la cadena
+        POP(r2)
+
+		
+        and r6, r0, 0
+		and r16, r0, 0
+        addu r16,r29,0
+        or r6, r29, r0 ;cargamos en r6 la longitud d la cadena original
+		or r16, r29,r0
+		
+		
+        st r6, r9,r0 ;guardamos en long1 la longitud
+        
+		;stop
+        addu r21,r6,7 
+        divu r21,r21,8
+        sub r21,r21,1; EN R21 TENEMOS EL MAPA DE BITS (calculado con el peor caso)     
+        add r21,r21,5 ; LE SUMAMOS LA CABECERA
+        add r21,r21,r6; LE SUMAMOS LO
+        ;EN R21 está guardado el tamaño d la en el peor caso.
+
+        and r13, r0, 0
+
+	MINIBUC:
+		addu r13,r13,4
+		
+		cmp r7,r13,r21 ;CADENA COMPRIMIDAAAAAAAAAAAA
+		bb1 lo,r7,MINIBUC; comprobamo si lo d r21(cadenacom) es múltiplo d 4.
+		and r28, r0, 0
+		
+		
+        subu r30, r30, r13 ;reservamos memoria en pila CADENA COMPRIMIDA(10)
+		or r24,r0,r30 ; ALMACENAMOS EN R24 LA DIRECCION DE LA PILA RESERVADA PARA COMPRIME
+		
+		
+	MINIBUC2: 
+		addu r28, r28, 4
+        cmp r7, r28, r6
+        bb1 lo, r7, MINIBUC2 ;comprobamo si r6 (cadenades) es múltiplo d 4
+		
+       ; subu r30,r30, 48
+	   
+       subu r30, r30, r28 ;reservamos memoria en pila CADENA DESCOMPRIMIDA (C)
+		
+		or r23,r0,r30     ; ALMACENAMOS EN R23 LA DIRECCION DE LA PILA RESERVADA PARA DESCOMPRIME
+		
+        
+		
+		subu r30,r30,8
+		
+		st r23,r30,r0
+		st r24,r30,4
+		
+	PACU:
+		
+		;st r26,r30,0
+        ;or r26,r30,4
+		
+		PUSH(r16)
+		PUSH(r10)
+		PUSH(r9)
+		PUSH(r28)
+		PUSH(r13)
+		
+		PUSH(r24) ;dirección d memoria dnd hay q dejar la cadena comprimida
+        PUSH(r2) ;texto que hay que comprimir efc8
+        bsr Comprime
+        POP(r2)
+		POP(r24)
+		
+        POP(r13)
+		POP(r28)
+		POP(r9)
+	    POP(r10) 
+        POP(r16)
+		
+		ld r23,r30,r0 
+		
+		
+    PACI:
+		;addu r13,r13,8
+		;or r25,r30,r13
+		;or r21,r2,0
+		;or r15,r9,0
+		;or r18,r1,0
+		
+		
+		PUSH(r9)
+		PUSH(r10)
+		PUSH(r18)
+		PUSH(r15)
+		PUSH(r21)
+		
+        PUSH(r23) 
+        PUSH(r24) 
+        bsr Descomprime
+		POP(r24)
+		POP(r23)
+		
+		POP(r21)
+		POP(r15)
+		POP(r18)
+		POP(r10)
+		POP(r9)
+	PAPU:
+        ;or r25,r30,0
+		;add r30,r30,4
+		;or r26,r30,r28
+		;add r30,r30,4
+        ;-----------------------------------R25 TIENE EL TEXTO DESCOMPRIMIDO Y R26 EL TEXTO COMPRIMIDO
+		
+		; EN R10 TENEMOS LONG 2 
+		
+		
+        ;or r8, r0, 0
+        ;addu r8, r29, 0 ;guardamos la longitud d la cadena descomprimida en r8
+		ld r10, r31, 16; long2
+		st r29,r10,0
+        
+		
+		ld r16, r31, 12; long1
+		ld r16,r16,r0
+		
+		or r2,r21,0
+		;or r9,r15,0
+		or r1,r18,0
+		;stop
+		;st.b r16, r9, 0
+		
+        cmp r4, r16, r29
+        bb0 eq, r4, FINNOLONG ;si no son iguales s sale
+	    
+       ; or r30,r25,r25
+	   
+	   
+	    ld r2,r31,8
+		
+		
+		PUSH(r9)
+		
+        PUSH(r23)  ;metemos el texto dsps d procesar	
+        PUSH(r2) ;metemos el texto original
+        bsr CoincidenCad
+        POP(r2)
+		
+        POP(r23)
+		POP(r9)
+		;stop
+		
+		
+		ld r22,r31,12
+		ld r22, r22, r0
+        cmp r4, r22, r29
+		
+        bb1 ne, r4, FINNOCOINC
+
+        or r29, r0, 0
+		or r30, r31, r0
+		
+		POP(r31)
+		POP(r1)
+        jmp(r1)
+
+FINNOCOINC: or r29, r0, 0
+        subu r29, r0, 2 ;s pone q no coinciden las cadenas en contenido
+        or r30, r31, r0
+		
+		POP(r31)
+		POP(r1)
+        jmp(r1)
+
+FINNOLONG: or r29, r0, 0
+        subu r29, r0, 1 ;s pone q no coinciden las cadenas en longitud.
+        or r30, r31, r0
+		
+		POP(r31)
+		POP(r1)
+        jmp(r1)
